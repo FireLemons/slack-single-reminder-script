@@ -2,24 +2,43 @@ require 'json'
 require 'net/http'
 require 'uri'
 
-token = File.read("../oauth_token.txt")
-message = File.read("message.json")
+DELETE_MESSAGE_URI = URI('https://slack.com/api/chat.delete')
+SEND_MESSAGE_URI = URI('https://slack.com/api/chat.postMessage')
 
-send_message_URI = URI('https://slack.com/api/chat.postMessage')
+if File.file?('../config.json')
+  config = JSON.parse(File.read('../config.json'))
+else
+  puts 'ERROR: Missing ../config.json'
+  exit 1
+end
 
-request_body = {
-  "channel": "C01HTBZ264V",
-  "text": "test"
-} 
+# Delete the previous message if a previous message id was found
+if File.file?('previous_message_id.txt')
+  previous_message_id = File.read('previous_message_id.txt')
 
-send_message_request = Net::HTTP::Post.new(send_message_URI, {
-  "Authorization": "Bearer #{token}",
-  "Content-Type": "application/json"
+  delete_message_request = Net::HTTP::Post.new(DELETE_MESSAGE_URI, {
+    'Authorization': "Bearer #{config["token"]}",
+    'Content-Type': 'application/json'
+  })
+  delete_message_request.set_form_data({
+    'channel': config['channel'],
+    'ts': previous_message_id
+  })
+  delete_message_result = Net::HTTP.start(DELETE_MESSAGE_URI.hostname, DELETE_MESSAGE_URI.port, :use_ssl => true) do |http|
+    http.request(delete_message_request)
+  end
+end
+
+send_message_request = Net::HTTP::Post.new(SEND_MESSAGE_URI, {
+  'Authorization': "Bearer #{config["token"]}",
+  'Content-Type': 'application/json'
 })
-
-send_message_request.set_form_data(request_body)
-send_message_result = Net::HTTP.start(send_message_URI.hostname, send_message_URI.port, :use_ssl => true) do |http|
+send_message_request.set_form_data({
+  'channel': config['channel'],
+  'text': config['text']
+})
+send_message_result = Net::HTTP.start(SEND_MESSAGE_URI.hostname, SEND_MESSAGE_URI.port, :use_ssl => true) do |http|
   http.request(send_message_request)
 end
 
-puts send_message_result.body
+File.write('previous_message_id.txt', JSON.parse(send_message_result.body)['ts'])
