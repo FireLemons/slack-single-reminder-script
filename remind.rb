@@ -29,6 +29,7 @@ if File.file?('previous_message_id.txt')
   end
 end
 
+# Send reminder
 send_message_request = Net::HTTP::Post.new(SEND_MESSAGE_URI, {
   'Authorization': "Bearer #{config["token"]}",
   'Content-Type': 'application/json'
