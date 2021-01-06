@@ -37,3 +37,7 @@ For example `ruby remind.rb emoji` will send the message `:eyes:` to the channel
 running the command a second time will delete the first `:eyes:` and post `:eyes:` again  
 
 At this point it's a good idea to test your config by running remind.rb manually  
+
+#### `config/schedule.rb`  
+More information about configuring this file can be found at https://github.com/javan/whenever  
+An example is found in this repo
