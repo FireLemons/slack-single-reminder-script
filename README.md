@@ -39,5 +39,6 @@ running the command a second time will delete the first `:eyes:` and post `:eyes
 At this point it's a good idea to test your config by running remind.rb manually  
 
 #### `config/schedule.rb`  
+This file determines when the reminder script will be run.  
 More information about configuring this file can be found at https://github.com/javan/whenever  
 An example is found in this repo
