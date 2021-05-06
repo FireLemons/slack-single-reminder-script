@@ -2,6 +2,7 @@
 Every time a reminder message is sent the previous reminder message is deleted.
 
 # Setup
+install ruby if not already installed  
 `bundle install` to install gems  
 
 ### Bot Account Setup
