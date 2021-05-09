@@ -16,7 +16,12 @@ install ruby if not already installed
   
 ### Configuration
 #### `config.json`
-Create a file called `config.json` 1 level above the repo root  
+Create a file called `config.json` in the same directory containing the repo root  
+
+    dir/
+      config.json
+      slack-single-reminder-script/
+
 It contains keys  
  - channel: the id of the channel to post messages to. This can be found at the end of the channel url. For example https://app.slack.com/client/T01HPM3CFJA/C01HTBZ264V would have an id of C01HTBZ264V  
  - messages: an object where each key contains the message of a different reminder you would like to send  
