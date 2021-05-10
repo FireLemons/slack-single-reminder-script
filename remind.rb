@@ -17,11 +17,12 @@ else
   exit 1
 end
 
+previous_messages = File.file?('./previous_message_ids.json') ? JSON.parse(File.read('./previous_message_ids.json')) : {}
 
 for message in ARGV
   # Delete the previous message if a previous message id was found
-  if File.file?("previous_message_#{message}_id.txt")
-    previous_message_id = File.read("previous_message_#{message}_id.txt")
+  if previous_messages.key?(message)
+    previous_message_id = previous_messages[message]
 
     delete_message_request = Net::HTTP::Post.new(DELETE_MESSAGE_URI, {
       'Authorization': "Bearer #{config["token"]}",
@@ -49,5 +50,7 @@ for message in ARGV
     http.request(send_message_request)
   end
 
-  File.write("previous_message_#{message}_id.txt", JSON.parse(send_message_result.body)['ts'])
+  previous_messages[message] = JSON.parse(send_message_result.body)['ts']
 end
+
+File.write('./previous_message_ids.json', previous_messages.to_json)
