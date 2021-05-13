@@ -17,16 +17,30 @@ else
   exit 1
 end
 
-previous_messages = File.file?('./previous_message_ids.json') ? JSON.parse(File.read('./previous_message_ids.json')) : {}
+previous_message_ids = File.file?('./previous_message_ids.json') ? JSON.parse(File.read('./previous_message_ids.json')) : {}
 
-def send_reminder (reminder)
+def delete_reminder (reminder_message_id)
+  delete_message_request = Net::HTTP::Post.new(DELETE_MESSAGE_URI, {
+    'Authorization': "Bearer #{$config["token"]}",
+    'Content-Type': 'application/json'
+  })
+  delete_message_request.set_form_data({
+    'channel': $config['channel'],
+    'ts': reminder_message_id
+  })
+  delete_message_result = Net::HTTP.start(DELETE_MESSAGE_URI.hostname, DELETE_MESSAGE_URI.port, :use_ssl => true) do |http|
+    http.request(delete_message_request)
+  end
+end
+
+def send_reminder (reminder_text)
   send_message_request = Net::HTTP::Post.new(SEND_MESSAGE_URI, {
     'Authorization': "Bearer #{$config["token"]}",
     'Content-Type': 'application/json'
   })
   send_message_request.set_form_data({
     'channel': $config['channel'],
-    'text': reminder
+    'text': reminder_text
   })
   send_message_result = Net::HTTP.start(SEND_MESSAGE_URI.hostname, SEND_MESSAGE_URI.port, :use_ssl => true) do |http|
     http.request(send_message_request)
@@ -37,23 +51,11 @@ end
 
 for message in ARGV
   # Delete the previous message if a previous message id was found
-  if previous_messages.key?(message)
-    previous_message_id = previous_messages[message]
-
-    delete_message_request = Net::HTTP::Post.new(DELETE_MESSAGE_URI, {
-      'Authorization': "Bearer #{$config["token"]}",
-      'Content-Type': 'application/json'
-    })
-    delete_message_request.set_form_data({
-      'channel': $config['channel'],
-      'ts': previous_message_id
-    })
-    delete_message_result = Net::HTTP.start(DELETE_MESSAGE_URI.hostname, DELETE_MESSAGE_URI.port, :use_ssl => true) do |http|
-      http.request(delete_message_request)
-    end
+  if previous_message_ids.key?(message)
+    delete_reminder(previous_message_ids[message])
   end
 
-  previous_messages[message] = send_reminder($config['messages'][message])
+  previous_message_ids[message] = send_reminder($config['messages'][message])
 end
 
-File.write('./previous_message_ids.json', previous_messages.to_json)
+File.write('./previous_message_ids.json', previous_message_ids.to_json)
